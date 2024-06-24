@@ -80,9 +80,11 @@ public struct Module {
   public func verify() throws {
     var message: UnsafeMutablePointer<CChar>? = nil
     defer { LLVMDisposeMessage(message) }
-    let status = withUnsafeMutablePointer(to: &message, { (m) in
-      LLVMVerifyModule(llvm.raw, LLVMReturnStatusAction, m)
-    })
+    let status = withUnsafeMutablePointer(
+      to: &message,
+      { (m) in
+        LLVMVerifyModule(llvm.raw, LLVMReturnStatusAction, m)
+      })
 
     if status != 0 {
       throw LLVMError(.init(cString: message!))
@@ -123,7 +125,7 @@ public struct Module {
   /// Compiles this module for given `machine` and writes a result of kind `type` to `filepath`.
   public func write(
     _ type: CodeGenerationResultType,
-    for machine:TargetMachine,
+    for machine: TargetMachine,
     to filepath: String
   ) throws {
     var error: UnsafeMutablePointer<CChar>? = nil
@@ -499,7 +501,7 @@ public struct Module {
     _ lhs: IRValue, _ rhs: IRValue,
     at p: InsertionPoint
   ) -> Instruction {
-     .init(LLVMBuildFDiv(p.llvm, lhs.llvm.raw, rhs.llvm.raw, ""))
+    .init(LLVMBuildFDiv(p.llvm, lhs.llvm.raw, rhs.llvm.raw, ""))
   }
 
   public mutating func insertUnsignedRem(
@@ -565,6 +567,20 @@ public struct Module {
     .init(LLVMBuildXor(p.llvm, lhs.llvm.raw, rhs.llvm.raw, ""))
   }
 
+  public mutating func insertNeg(
+    _ value: IRValue,
+    at p: InsertionPoint
+  ) -> Instruction {
+    .init(LLVMBuildNeg(p.llvm, value.llvm.raw, ""))
+  }
+
+  public mutating func insertFNeg(
+    _ value: IRValue,
+    at p: InsertionPoint
+  ) -> Instruction {
+    .init(LLVMBuildFNeg(p.llvm, value.llvm.raw, ""))
+  }
+
   // MARK: Memory
 
   public mutating func insertAlloca(_ type: IRType, at p: InsertionPoint) -> Alloca {
@@ -596,7 +612,8 @@ public struct Module {
     at p: InsertionPoint
   ) -> Instruction {
     var i = indices.map({ $0.llvm.raw as Optional })
-    let h = LLVMBuildInBoundsGEP2(p.llvm, baseType.llvm.raw, base.llvm.raw, &i, UInt32(i.count), "")!
+    let h = LLVMBuildInBoundsGEP2(
+      p.llvm, baseType.llvm.raw, base.llvm.raw, &i, UInt32(i.count), "")!
     return .init(h)
   }
 
@@ -751,7 +768,8 @@ public struct Module {
     at p: InsertionPoint
   ) -> Instruction {
     var a = arguments.map({ $0.llvm.raw as Optional })
-    return .init(LLVMBuildCall2(p.llvm, calleeType.llvm.raw, callee.llvm.raw, &a, UInt32(a.count), ""))
+    return .init(
+      LLVMBuildCall2(p.llvm, calleeType.llvm.raw, callee.llvm.raw, &a, UInt32(a.count), ""))
   }
 
   public mutating func insertIntegerComparison(
